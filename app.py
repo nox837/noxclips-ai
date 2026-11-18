@@ -159,7 +159,7 @@ with gr.Blocks(title="NoxClips AI Engine",theme=gr.themes.Base(primary_hue="rose
     gr.Markdown("# 🔴 NOXCLIPS AI ENGINE\nUpload a video, choose a style, and generate short vertical clips. **Free CPU processing can be slow; start with a short test video.**")
     with gr.Row():
         with gr.Column(scale=1):
-            video=gr.Video(label="Upload video from gallery",sources=["upload"]
+            video=gr.Video(label="Upload video from gallery",sources=["upload"])
             count=gr.Dropdown([5,6,7,8,9,10],value=5,label="Number of clips")
             style=gr.Dropdown(["Mixed — everything interesting","Funny moments","Surprising moments","Emotional moments","Exciting moments"],value="Mixed — everything interesting",label="Highlight style")
             template=gr.Dropdown(["Cinematic","Viral","Podcast","Gaming","Motivation","Meme / Funny"],value="Cinematic",label="Template")
