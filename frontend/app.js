@@ -101,7 +101,7 @@ $("generateBtn").addEventListener("click", async () => {
       clip_count: Number(count.value || 3),
       style: $("style")?.value || "Mixed",
       duration_seconds: Number($("duration")?.value || 30),
-      aspect_ratio: $("aspectRatio")?.value || "9:16",
+      aspect_ratio: $("ratio")?.value || "9:16",
       caption_template: document.querySelector(".template.selected")?.textContent.trim() || "Bold Viral",
       font: $("font")?.value || "Inter"
     });
