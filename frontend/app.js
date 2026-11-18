@@ -103,7 +103,8 @@ $("generateBtn").addEventListener("click", async () => {
       duration_seconds: Number($("duration")?.value || 30),
       aspect_ratio: $("ratio")?.value || "9:16",
       caption_template: document.querySelector(".template.selected")?.textContent.trim() || "Bold Viral",
-      font: $("font")?.value || "Inter"
+      font: $("font")?.value || "Inter",
+caption_position: $("captionPosition")?.value || "Bottom"
     });
 
     showMessage(result.message, "#e6c978");
