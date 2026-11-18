@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoxClips AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090b12;color:#fff;font-family:Arial,sans-serif}
+header{padding:22px 18px;border-bottom:1px solid #242735}
+.logo{font-size:25px;font-weight:900;color:#a78bfa}
+.logo span{color:white}
+main{max-width:650px;margin:auto;padding:25px 18px}
+h1{font-size:34px;margin-bottom:8px}
+p{color:#9ca3af;line-height:1.6}
+.card{background:#141722;border:1px solid #292e40;padding:20px;border-radius:16px;margin-top:22px}
+label{display:block;margin-bottom:12px;font-weight:bold}
+input,select{width:100%;padding:15px;background:#090b12;border:1px solid #35394b;border-radius:9px;color:white;margin-bottom:17px}
+button{width:100%;padding:15px;border:0;border-radius:9px;background:#8b5cf6;color:white;font-size:16px;font-weight:bold}
+button:active{opacity:.8}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.feature{background:#141722;padding:17px;border-radius:12px;border:1px solid #292e40}
+.feature b{display:block;margin-bottom:7px}
+.feature small{color:#9ca3af}
+#status{margin-top:15px;color:#a78bfa}
+footer{text-align:center;color:#666;padding:35px}
+</style>
+</head>
+<body>
+<header><div class="logo">NOX<span>CLIPS</span> AI</div></header>
+<main>
+<h1>Turn Videos Into Viral Clips.</h1>
+<p>AI-powered video clipping. Find interesting moments, create shorts and grow your channel.</p>
+
+<div class="card">
+<label>YouTube Video URL</label>
+<input id="video" type="url" placeholder="Paste YouTube video link">
+
+<label>Clip Length</label>
+<select id="length">
+<option>30 seconds</option>
+<option>45 seconds</option>
+<option>60 seconds</option>
+<option>90 seconds</option>
+</select>
+
+<label>Video Format</label>
+<select id="format">
+<option>9:16 Vertical Shorts</option>
+<option>16:9 Landscape</option>
+<option>1:1 Square</option>
+</select>
+
+<button onclick="start()">Generate Clips</button>
+<div id="status"></div>
+</div>
+
+<div class="features">
+<div class="feature"><b>✨ AI Detection</b><small>Find interesting moments</small></div>
+<div class="feature"><b>💬 Captions</b><small>Automatic subtitles</small></div>
+<div class="feature"><b>📱 Auto Crop</b><small>Vertical video format</small></div>
+<div class="feature"><b>🎬 Editing</b><small>Create short videos</small></div>
+</div>
+</main>
+<footer>NoxClips AI · Create Something Viral</footer>
+<script>
+function start(){
+let url=document.getElementById('video').value;
+if(!url.trim()){
+document.getElementById('status').innerText="Please paste a YouTube video link.";
+return;
+}
+document.getElementById('status').innerText="Interface ready! Clipping engine needs to be connected next.";
+}
+</script>
+</body>
+</html>
