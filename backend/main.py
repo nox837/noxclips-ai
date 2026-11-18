@@ -16,7 +16,9 @@ app = FastAPI(
 
 
 def is_youtube(url: str) -> bool:
-    host = urlparse(url).hostname or ""
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+
     allowed = {
         "youtube.com",
         "www.youtube.com",
@@ -30,10 +32,8 @@ def is_youtube(url: str) -> bool:
     if host not in allowed:
         return False
 
-    parsed = urlparse(url)
-
     if host.endswith("youtu.be"):
-        return len(parsed.path.strip("/")) > 0
+        return bool(parsed.path.strip("/"))
 
     return (
         bool(parsed.query and "v=" in parsed.query)
@@ -46,7 +46,6 @@ class InspectRequest(BaseModel):
     youtube_url: HttpUrl
 
 
-
 class ClipRequest(BaseModel):
     youtube_url: HttpUrl
     style: str = "Mixed"
@@ -56,14 +55,6 @@ class ClipRequest(BaseModel):
     caption_template: str = "Bold Viral"
     font: str = "Inter"
     caption_position: str = "Bottom"
-    
-    youtube_url: HttpUrl
-    style: str = "Mixed"
-    clip_count: int = Field(default=3, ge=1, le=10)
-    duration_seconds: int = Field(default=30, ge=10, le=180)
-    aspect_ratio: str = "9:16"
-    caption_template: str = "Bold Viral"
-    font: str = "Inter"
 
 
 @app.get("/api/health")
@@ -103,10 +94,7 @@ def create_job(request: ClipRequest):
 
     return {
         "status": "processor_not_configured",
-        "message": (
-            "Your settings reached the NoxClips backend successfully. "
-            "Connect an authorized video-processing provider to generate clips."
-        ),
+        "message": "Settings received. Video processing is not connected yet.",
         "settings": request.model_dump()
     }
 
