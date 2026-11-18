@@ -1,154 +1,44 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NoxClips AI</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#090a10;color:white;font-family:Arial,sans-serif}
-header{padding:20px;border-bottom:1px solid #28283a}
-.logo{font-size:25px;font-weight:900;color:#a78bfa}
-main{max-width:700px;margin:auto;padding:20px}
-h1{font-size:32px;margin-bottom:5px}
-p{color:#aaa;line-height:1.5}
-.card{background:#151622;padding:18px;border:1px solid #303044;border-radius:15px;margin:20px 0}
-input,button{width:100%;padding:14px;border-radius:9px;margin:8px 0}
-input{background:#090a10;color:white;border:1px solid #444}
-button{background:#8b5cf6;color:white;border:0;font-size:15px;font-weight:bold}
-button:disabled{opacity:.4}
-video{width:100%;border-radius:12px;background:#000;margin-top:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stat{background:#202032;padding:15px;border-radius:10px}
-.stat b{display:block;margin-bottom:5px}
-#status{color:#a78bfa;margin-top:10px}
-#clips{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.clip{background:#202032;padding:12px;border-radius:10px}
-.clip video{aspect-ratio:9/16;object-fit:contain}
-small{color:#aaa}
-footer{text-align:center;color:#777;padding:25px}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NoxClips AI</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header><div class="logo">NOXCLIPS AI</div></header>
-<main>
-<h1>Turn Videos Into Clips.</h1>
-<p>Your personal short-video editing studio.</p>
-
-<div class="card">
-<h3>1. YouTube Video Link</h3>
-<input id="yt" placeholder="Paste YouTube URL">
-<button onclick="previewYT()">Preview YouTube Video</button>
-<div id="ytpreview"></div>
-</div>
-
-<div class="card">
-<h3>2. Upload Original Video</h3>
-<input type="file" id="file" accept="video/*">
-<video id="source" controls hidden></video>
-<div id="status">Waiting for video...</div>
-</div>
-
-<div class="card">
-<h3>3. Clip Settings</h3>
-<div class="grid">
-<div class="stat"><b>5 Clips</b><small>Target clips</small></div>
-<div class="stat"><b>9:16</b><small>Vertical format</small></div>
-</div>
-<p>Choose clip length:</p>
-<input type="number" id="duration" value="30" min="5" max="180">
-<button onclick="makeClips()">Create 5 Clips</button>
-</div>
-
-<div class="card">
-<h3>4. Your Clips</h3>
-<div id="clips">No clips created yet.</div>
-</div>
-<footer>NOXCLIPS AI • Create Something Viral</footer>
-</main>
-<script>
-let video=document.getElementById('source');
-let videoURL=null;
-let jobs=[];
-
-function previewYT(){
-let url=document.getElementById('yt').value.trim();
-let match=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
-if(!match){alert("Enter a valid YouTube link");return;}
-document.getElementById('ytpreview').innerHTML=
-'<iframe width="100%" height="220" src="https://www.youtube-nocookie.com/embed/'+match[1]+'" allowfullscreen></iframe>';
-}
-
-document.getElementById('file').addEventListener('change',e=>{
-let file=e.target.files[0];
-if(!file)return;
-if(videoURL)URL.revokeObjectURL(videoURL);
-videoURL=URL.createObjectURL(file);
-video.src=videoURL;
-video.hidden=false;
-document.getElementById('status').innerText="Video loaded: "+file.name;
-});
-
-function makeClips(){
-if(!videoURL){alert("Upload your original video first.");return;}
-let duration=Math.max(5,Math.min(180,Number(document.getElementById('duration').value)||30));
-video.addEventListener('loadedmetadata',()=>{
-let total=video.duration;
-if(!Number.isFinite(total)||total<=0){alert("Video duration unavailable.");return;}
-let clips=document.getElementById('clips');
-clips.innerHTML="";
-jobs=[];
-for(let i=0;i<5;i++){
-let start=Math.min(i*total/5,total);
-let end=Math.min(start+duration,total);
-if(end<=start)continue;
-let item=document.createElement('div');
-item.className='clip';
-let v=document.createElement('video');
-v.src=videoURL;
-v.controls=true;
-v.muted=true;
-v.addEventListener('loadedmetadata',()=>{v.currentTime=start;});
-let label=document.createElement('p');
-label.textContent="Clip "+(i+1)+" • "+start.toFixed(1)+"s to "+end.toFixed(1)+"s";
-let btn=document.createElement('button');
-btn.textContent="Export MP4";
-btn.onclick=()=>exportClip(start,end);
-item.append(v,label,btn);
-clips.append(item);
-jobs.push({start,end});
-}
-document.getElementById('status').innerText="Five clip sections selected. Choose Export MP4.";
-},{once:true});
-video.load();
-}
-
-async function exportClip(start,end){
-if(!window.MediaRecorder){alert("MP4 recording is not supported by this browser. Try Chrome.");return;}
-let stream=video.captureStream();
-let mime=["video/mp4;codecs=avc1","video/webm;codecs=vp9","video/webm"].find(t=>MediaRecorder.isTypeSupported(t));
-if(!mime){alert("Video export is not supported on this device.");return;}
-let recorder=new MediaRecorder(stream,{mimeType:mime});
-let chunks=[];
-recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
-recorder.onstop=()=>{
-let blob=new Blob(chunks,{type:mime});
-let url=URL.createObjectURL(blob);
-let a=document.createElement('a');
-a.href=url;
-a.download="NoxClip-"+Date.now()+(mime.includes("mp4")?".mp4":".webm");
-a.click();
-setTimeout(()=>URL.revokeObjectURL(url),30000);
-};
-video.currentTime=start;
-await new Promise(resolve=>video.addEventListener('seeked',resolve,{once:true}));
-recorder.start();
-video.play();
-let stop=()=>{if(recorder.state!=="inactive")recorder.stop();video.pause();video.removeEventListener('timeupdate',check);};
-let check=()=>{if(video.currentTime>=end)stop();};
-video.addEventListener('timeupdate',check);
-}
-</script>
+  <header class="top"><div class="brand"><span class="mark">N</span><div><b>NOXCLIPS</b><small>AI CLIP STUDIO</small></div></div><span class="local">● LOCAL PROCESSING</span></header>
+  <main>
+    <section class="hero"><p class="eyebrow">TURN LONG VIDEOS INTO SHORTS</p><h1>Your next <span>viral moment</span><br>starts here.</h1><p class="sub">Create vertical clips, add hooks and captions, and export right in your browser.</p></section>
+    <section class="panel">
+      <h2>01 / Add your video</h2>
+      <label class="upload" for="file"><span class="uploadicon">＋</span><b>Choose a video from your phone</b><small>MP4, WebM or MOV · Video stays on your device</small></label>
+      <input id="file" type="file" accept="video/*" hidden>
+      <div class="or">OR ADD A YOUTUBE REFERENCE LINK</div>
+      <div class="urlrow"><input id="yt" placeholder="https://www.youtube.com/watch?v=..." type="url"><button id="saveUrl" class="secondary">Save link</button></div>
+      <p id="status" class="status">No video selected yet.</p>
+      <video id="video" controls playsinline></video>
+    </section>
+    <section class="panel">
+      <h2>02 / Choose your clip</h2>
+      <div class="grid2"><label>Start (seconds)<input id="start" type="number" min="0" step=".1" value="0"></label><label>End (seconds)<input id="end" type="number" min="0" step=".1" value="20"></label></div>
+      <button id="suggest" class="secondary wide">Suggest 5 sections</button>
+      <div id="sections" class="sections"></div>
+      <p class="hint">Suggestions are evenly spaced sections, not AI-detected viral moments. Review and adjust them yourself.</p>
+    </section>
+    <section class="panel">
+      <h2>03 / Make it yours</h2>
+      <div class="grid2"><label>Video format<select id="ratio"><option value="9:16">9:16 · Shorts / Reels</option><option value="1:1">1:1 · Square</option><option value="16:9">16:9 · Landscape</option></select></label><label>Caption position<select id="captionPos"><option value="bottom">Bottom</option><option value="middle">Middle</option><option value="top">Top</option></select></label></div>
+      <label>Opening hook<input id="hook" maxlength="80" placeholder="Wait until you see this..."></label>
+      <label>Caption text<input id="caption" maxlength="140" placeholder="Type your caption here"></label>
+      <button id="preview" class="secondary wide">Preview overlays</button>
+      <canvas id="canvas" width="720" height="1280"></canvas>
+      <button id="export" class="primary wide">Export selected clip</button>
+      <p id="exportStatus" class="status">Choose a video to begin exporting.</p>
+    </section>
+    <section class="panel note"><h2>What this version can do</h2><p>Local video preview, manual trimming, five evenly spaced suggestions, vertical/square/landscape crop, editable hook and caption overlays, and browser-based recording when supported.</p><p><b>Not included yet:</b> automatic speech-to-text, true AI highlight detection, face tracking, batch export, or direct posting to YouTube/Instagram. YouTube links are references only; upload a video you own or have permission to edit.</p></section>
+  </main>
+  <footer>NOXCLIPS AI · Built for creators</footer>
+  <script src="app.js"></script>
 </body>
 </html>
