@@ -1,1 +1,0 @@
-NoxClips.ai backend starter. Run with: `uvicorn main:app --reload --host 0.0.0.0 --port 8000`. This starter validates YouTube URLs and settings; it does not download or process video until an authorized video source and worker are configured.
