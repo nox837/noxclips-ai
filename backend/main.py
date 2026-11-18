@@ -46,7 +46,17 @@ class InspectRequest(BaseModel):
     youtube_url: HttpUrl
 
 
+
 class ClipRequest(BaseModel):
+    youtube_url: HttpUrl
+    style: str = "Mixed"
+    clip_count: int = Field(default=3, ge=1, le=10)
+    duration_seconds: int = Field(default=30, ge=10, le=180)
+    aspect_ratio: str = "9:16"
+    caption_template: str = "Bold Viral"
+    font: str = "Inter"
+    caption_position: str = "Bottom"
+    
     youtube_url: HttpUrl
     style: str = "Mixed"
     clip_count: int = Field(default=3, ge=1, le=10)
