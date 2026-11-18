@@ -1,10 +1,50 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, HttpUrl, Field
-from urllib.parse import urlparse, parse_qs
 
-app = FastAPI(title="NoxClips.ai API", version="2.0.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+from pathlib import Path
+from urllib.parse import urlparse
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field, HttpUrl
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+app = FastAPI(
+    title="NoxClips.ai API",
+    version="2.1.0"
+)
+
+
+def is_youtube(url: str) -> bool:
+    host = urlparse(url).hostname or ""
+    allowed = {
+        "youtube.com",
+        "www.youtube.com",
+        "m.youtube.com",
+        "youtu.be",
+        "www.youtu.be",
+        "youtube-nocookie.com",
+        "www.youtube-nocookie.com"
+    }
+
+    if host not in allowed:
+        return False
+
+    parsed = urlparse(url)
+
+    if host.endswith("youtu.be"):
+        return len(parsed.path.strip("/")) > 0
+
+    return (
+        bool(parsed.query and "v=" in parsed.query)
+        or parsed.path.startswith("/shorts/")
+        or parsed.path.startswith("/embed/")
+    )
+
+
+class InspectRequest(BaseModel):
+    youtube_url: HttpUrl
+
 
 class ClipRequest(BaseModel):
     youtube_url: HttpUrl
@@ -13,23 +53,57 @@ class ClipRequest(BaseModel):
     duration_seconds: int = Field(default=30, ge=10, le=180)
     aspect_ratio: str = "9:16"
     caption_template: str = "Bold Viral"
+    font: str = "Inter"
 
-def is_youtube(url: str) -> bool:
-    host = urlparse(url).hostname or ""
-    return host in {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtube-nocookie.com"}
 
-@app.get("/health")
+@app.get("/api/health")
 def health():
-    return {"status": "ok", "app": "NoxClips.ai", "version": "2.0.0"}
+    return {
+        "status": "ok",
+        "app": "NoxClips.ai",
+        "version": "2.1.0"
+    }
+
+
+@app.post("/api/inspect")
+def inspect_video(request: InspectRequest):
+    url = str(request.youtube_url)
+
+    if not is_youtube(url):
+        return {
+            "status": "error",
+            "message": "Please provide a valid YouTube video URL."
+        }
+
+    return {
+        "status": "accepted",
+        "message": "YouTube link format is valid. Video inspection requires an authorized video provider."
+    }
+
 
 @app.post("/api/jobs")
 def create_job(request: ClipRequest):
-    if not is_youtube(str(request.youtube_url)):
-        return {"error": "Only YouTube URLs are supported."}
-    # Safe starter: job orchestration is intentionally not connected to a downloader.
-    # Add an authorized source/provider for videos the user owns or has permission to process.
+    url = str(request.youtube_url)
+
+    if not is_youtube(url):
+        return {
+            "status": "error",
+            "message": "Only supported YouTube URLs are accepted."
+        }
+
     return {
-        "status": "backend_not_connected",
-        "message": "Request validated. Connect an authorized video source and processing worker to start a real job.",
+        "status": "processor_not_configured",
+        "message": (
+            "Your settings reached the NoxClips backend successfully. "
+            "Connect an authorized video-processing provider to generate clips."
+        ),
         "settings": request.model_dump()
     }
+
+
+if FRONTEND_DIR.exists():
+    app.mount(
+        "/",
+        StaticFiles(directory=str(FRONTEND_DIR), html=True),
+        name="frontend"
+    )
